@@ -5,7 +5,6 @@
 #include "Camera.h"
 
 
-
 using namespace std;
 
 struct Vector
@@ -32,13 +31,13 @@ struct Texture
 class Model
 {
 public:
-	double scale = 1;
+	double scale = 0.03;
 	double rotate_x = 0;
 	double rotate_y = 0;
 	double rotate_z = 0;
 	double translate_x = 0;
 	double translate_y = 0;
-	double translate_z = 0;
+	double translate_z = 0.5;
 	string nome;
 	bool hasTexture;
 	bool hasNormal;
@@ -53,4 +52,5 @@ public:
 	Vector getNormal(Vector p1, Vector p2, Vector p3);
 	void DrawModel();
 	void calcularNormal();
+	void rotate();
 };
