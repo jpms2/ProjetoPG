@@ -52,7 +52,7 @@ void display(){
 
 	//--------------------------Camera Setup --------------------------------
 	glMatrixMode(GL_PROJECTION);
-	glViewport(0, 0, wWidth / 2, wHeight);
+	glViewport(0, 0, wWidth , wHeight);
 	glLoadIdentity();
 	gluPerspective(45, wWidth / (wHeight * 2), 0.1f, 3000.0f);
 	cameraPrincipal.setView();
@@ -63,7 +63,7 @@ void display(){
 	{
 		objs[i].DrawModel();
 	}
-	//drawGrid();
+	drawGrid();
 	drawFPS();
 
 	glFlush();
@@ -133,10 +133,11 @@ void printw(float x, float y, float z, char* format, ...)
 
 	//  Write formatted output using a pointer to the list of arguments
 	vsprintf_s(text, len, format, args);
-
 	//  End using variable argument list 
 	va_end(args);
 	//  Specify the raster position for pixel operations.,
+	glDisable(GL_LIGHTING);
+	glColor3f(1.0,1.0,1.0);
 	glRasterPos3f(x, y, z);
 	//  Draw the characters one by one
 	for (i = 0; text[i] != '\0'; i++)
@@ -181,26 +182,43 @@ void idle(void)
 	calculateFPS();
 	glutPostRedisplay();
 }
-
-void drawGrid() // Draws a grid...
+	
+// Red = Z , x = Blue
+void drawGrid() 
 {
 	glPushMatrix();
+	glTranslatef(-0.5,-0.2,0);
+	glDisable(GL_LIGHTING);
 	glColor3f(.3, .3, .3);
 	glBegin(GL_LINES);
-	for (int i = 0; i <= 10; i++)
+	for (double i = 0; i <= 1; i = i+ 0.1)
 	{
 		if (i == 0) { glColor3f(.6, .3, .3); }
 		else { glColor3f(.25, .25, .25); };
 		glVertex3f(i, 0, 0);
-		glVertex3f(i, 0, 10);
+		glVertex3f(i, 0, 1);
+		
 		if (i == 0) { glColor3f(.3, .3, .6); }
 		else { glColor3f(.25, .25, .25); };
 		glVertex3f(0, 0, i);
-		glVertex3f(10, 0, i);
+		glVertex3f(1, 0, i);
+		
+	};
+
+	for (double i = 0; i <= 1; i = i + 0.1)
+	{
+		glColor3f(.25, .25, .25);
+		glVertex3f(0, i, 1);
+		glVertex3f(1, i, 1);
+
+		if (i == 0) { glColor3f(.3, .6, .3); }
+		else { glColor3f(.25, .25, .25); };
+		glVertex3f(i, 0, 1);
+		glVertex3f(i, 1, 1);
+
 	};
 
 	glEnd();
-
 	glPopMatrix();
 }
 
@@ -267,19 +285,19 @@ void handleKeypress(unsigned char key, int x, int y)
 		break;
 
 	case 119: //w
-		cameraPrincipal.translateGlob(0, 0, 0.01);
+		cameraPrincipal.translateLoc(0, 0, 0.01);
 		break;
 
 	case 115: //s
-		cameraPrincipal.translateGlob(0, 0, -0.01);
+		cameraPrincipal.translateLoc(0, 0, -0.01);
 		break;
 
 	case 97: //a
-		cameraPrincipal.translateGlob(-0.01,0, 0);
+		cameraPrincipal.translateLoc(-0.01,0, 0);
 		break;
 
 	case 100: //d
-		cameraPrincipal.translateGlob(0.01, 0, 0);
+		cameraPrincipal.translateLoc(0.01, 0, 0);
 		break;
 
 	case 44://,
@@ -299,6 +317,18 @@ void handleKeypress(unsigned char key, int x, int y)
 		break;
 	}
 		glutPostRedisplay();
+}
+
+void myreshape(GLsizei w, GLsizei h) // Called at startup and when you move the window
+{
+	glMatrixMode(GL_PROJECTION);
+	wWidth = w;
+	wHeight = h;
+	double g_Width = wWidth;
+	double g_Height = wHeight;
+	glViewport(0, 0, g_Width, g_Height);
+	glLoadIdentity();
+	gluPerspective(45, g_Width / g_Height, 0.1f, 500.0f);
 }
 
 void translateModel(int selector, double deslocamento)
@@ -443,8 +473,8 @@ void mouseClickFunction(int btn, int state, int x, int y){
 void mouseMotion(int x, int y){
 	if (!mouse_right){
 		if (click){
-			cameraPrincipal.rotateGlob((x - mousepos_x)*0.2, 0, 1, 0);
-			cameraPrincipal.rotateGlob((y - mousepos_y)*0.2, 1, 0, 0);
+			cameraPrincipal.rotateLoc((x - mousepos_x)*0.2, 0, 1, 0);
+			cameraPrincipal.rotateLoc((y - mousepos_y)*0.2, 1, 0, 0);
 		}
 		mousepos_x = x;
 		mousepos_y = y;
@@ -469,13 +499,13 @@ int main(int argc, char* argv[]){
 	glutDisplayFunc(display);
 	glutIdleFunc(idle);
 	glutKeyboardFunc(handleKeypress);
-
+	glutReshapeFunc(myreshape);
 	glutMotionFunc(mouseMotion);
 	glutMouseFunc(mouseClickFunction);
 
 	//  Pass control to GLUT for events
 	glutMainLoop();
-
+	
 	//  Return to OS
 	return 0;
 }
